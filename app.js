@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
     SUM(CASE WHEN tipo = 'saida' AND date_trunc('week', data) = date_trunc('week', CURRENT_DATE) AND fechado = FALSE THEN valor ELSE 0 END) AS total_saida_semana,
     SUM(CASE WHEN tipo = 'entrada' AND date_part('month', data) = date_part('month', CURRENT_DATE) AND fechado = FALSE THEN valor ELSE 0 END) AS total_entrada_mes,
     SUM(CASE WHEN tipo = 'saida' AND date_part('month', data) = date_part('month', CURRENT_DATE) AND fechado = FALSE THEN valor ELSE 0 END) AS total_saida_mes
-FROM transacoes;
+FROM fortaleza;
     `;
 
     // Consulta para dados apenas do dia
@@ -70,7 +70,7 @@ FROM transacoes;
                 nome_do_item,
                 Descricao,
                 to_char(data, 'YYYY-MM-DD') AS data
-            FROM transacoes
+            FROM fortaleza
             WHERE data::date = CURRENT_DATE;
     `;
 
@@ -114,7 +114,7 @@ FROM transacoes;
                 nome_do_item,
                 Descricao,
                 to_char(data, 'YYYY-MM-DD') AS data
-            FROM transacoes
+            FROM fortaleza
             WHERE data::date = CURRENT_DATE;
 
             `;
@@ -145,7 +145,7 @@ FROM transacoes;
 
 app.get('/edit-transacao/:id', (req, res) => {
     const { id } = req.params;
-    const query = 'SELECT * FROM transacoes WHERE id = $1';
+    const query = 'SELECT * FROM fortaleza WHERE id = $1';
     db.query(query, [id], (err, result) => {
        // if (err) return next(err);
         if (result.length > 0) {
@@ -163,7 +163,7 @@ app.post('/add-transacao', (req, res) => {
 
         const valorNum = parseFloat(valor);
         const query = `
-            INSERT INTO transacoes (tipo, valor, forma_pagamento, nome_do_item, descricao, fechado, data)
+            INSERT INTO fortaleza (tipo, valor, forma_pagamento, nome_do_item, descricao, fechado, data)
             VALUES ($1, $2, $3, $4, $5, FALSE, CURRENT_DATE);
         `;
 
@@ -191,7 +191,7 @@ app.post('/add-transacao', (req, res) => {
 app.post('/update-transacao', (req, res) => {
     const { id, nome_do_item, tipo, valor, data, forma_pagamento, descricao } = req.body;
     const query = `
-        UPDATE transacoes
+        UPDATE fortaleza
         SET tipo = $1, valor = $2, data = $3, forma_pagamento = $4, nome_do_item = $5, descricao = $6
         WHERE id = $7;
     `;
@@ -204,7 +204,7 @@ app.post('/update-transacao', (req, res) => {
 
 app.post('/delete-transacao', (req, res) => {
     const { id } = req.body;
-    const query = 'DELETE FROM transacoes WHERE id = $1';
+    const query = 'DELETE FROM fortaleza WHERE id = $1';
     db.query(query, [id], (err, result) => {
       //  if (err) return next(err);
         res.redirect('/');
@@ -236,7 +236,7 @@ app.get('/', async (req, res) => {
 
 
 app.post('/fechar-caixa', (req, res) => {
-    const query = 'UPDATE transacoes SET fechado = TRUE WHERE fechado = FALSE';
+    const query = 'UPDATE fortaleza SET fechado = TRUE WHERE fechado = FALSE';
     db.query(query, (err, result) => {
        // if (err) return next(err);
         res.redirect('/');
@@ -254,7 +254,7 @@ app.get('/search', (req, res) => {
     "NOME_DO_ITEM",
     Descricao,
     to_char(data, 'YYYY-MM-DD') AS data
-FROM transacoes
+FROM fortaleza
 WHERE "NOME_DO_ITEM" ILIKE $1;
 
     `;
@@ -281,7 +281,7 @@ app.get('/relatorio-mensal', (req, res) => {
             SUM(CASE WHEN tipo = 'entrada' THEN valor ELSE 0 END) AS total_entrada_mes,
             SUM(CASE WHEN tipo = 'saida' THEN valor ELSE 0 END) AS total_saida_mes,
             (SUM(CASE WHEN tipo = 'entrada' THEN valor ELSE 0 END) - SUM(CASE WHEN tipo = 'saida' THEN valor ELSE 0 END)) AS saldo_mes
-        FROM transacoes
+        FROM fortaleza
         WHERE EXTRACT(MONTH FROM data) = $1 AND EXTRACT(YEAR FROM data) = $2;
     `;
 
@@ -295,7 +295,7 @@ app.get('/relatorio-mensal', (req, res) => {
             nome_do_item,
             descricao,
             to_char(data, 'YYYY-MM-DD') AS data
-        FROM transacoes
+        FROM fortaleza
         WHERE EXTRACT(MONTH FROM data) = $1 AND EXTRACT(YEAR FROM data) = $2;
     `;
 
